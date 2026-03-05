@@ -1,0 +1,76 @@
+function [xvec,xdif,xsolution,ysolution,iterations] = impedance_secant()
+% Wyznacza miejsce zerowe funkcji impedance_difference metodą siecznych.
+% xvec - wektor z kolejnymi przybliżeniami miejsca zerowego;
+%   xvec(1)=x2 przy założeniu, że x0 i x1 są punktami startowymi
+% xdif - wektor różnic kolejnych przybliżeń miejsca zerowego
+%   xdif(i) = abs(xvec(i+1)-xvec(i));
+% xsolution - obliczone miejsce zerowe
+% ysolution - wartość funkcji impedance_difference wyznaczona dla f=xsolution
+% iterations - liczba iteracji wykonana w celu wyznaczenia xsolution
+
+x0 = 1; % pierwszy punkt startowy metody siecznych
+x1 = 10; % drugi punkt startowy metody siecznych
+ytolerance = 1e-12;% tolerancja wartości funkcji w przybliżonym miejscu zerowym.
+% Warunek abs(f1(xsolution))<ytolerance określa jak blisko zera ma znaleźć
+% się wartość funkcji w obliczonym miejscu zerowym funkcji f1(), aby obliczenia
+% zostały zakończone.
+max_iterations = 1000; % maksymalna liczba iteracji wykonana przez alg. bisekcji
+
+f0 = impedance_difference(x0);
+f1 = impedance_difference(x1);
+
+xvec = [];
+xvec(1,1)
+xdif = [];
+xsolution = Inf;
+ysolution = Inf;
+iterations = max_iterations;
+
+for ii=1:max_iterations
+    x2 = xvec(ii-1,1)
+    % xvec(ii,1) = x2;
+    % f2 = ...
+    if(abs(f2)<ytolerance)
+        xsolution = x2;
+        ysolution = f2;
+        iterations = ii;
+        break
+    else
+    end
+
+    % Wykresy
+    figure;
+    
+    % Górny wykres - przybliżenia
+    subplot(2,1,1);
+    plot(xvec, '-o');
+    title('Przybliżenia miejsca zerowego');
+    xlabel('Iteracja');
+    ylabel('x');
+    grid on;
+
+    % Dolny wykres - logarytm różnic
+    subplot(2,1,2);
+    semilogy(xdif, '-o');
+    title('Różnice kolejnych przybliżeń (log)');
+    xlabel('Iteracja');
+    ylabel('|x_{i+1} - x_i|');
+    grid on;
+end
+
+function impedance_delta = impedance_difference(f)
+    R = 525;
+    L = 3;
+    C = 7e-5;
+    Z_ref = 75;
+
+    if f <= 0
+        error('Częstotliwość musi być większa od zera.');
+    end
+
+    omega = 2 * pi * f;
+    denominator = sqrt(1/R^2 + (omega * C - 1 / (omega * L))^2);
+    Zf = 1 / denominator;
+
+    impedance_delta = abs(Zf) - Z_ref;
+end

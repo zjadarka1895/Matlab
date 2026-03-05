@@ -1,0 +1,72 @@
+function [xvec,xdif,xsolution,ysolution,iterations] = impedance_bisection()
+% Wyznacza miejsce zerowe funkcji impedance_difference metodą bisekcji.
+% xvec - wektor z kolejnymi przybliżeniami miejsca zerowego, gdzie xvec(1)= (a+b)/2
+% xdif - wektor różnic kolejnych przybliżeń miejsca zerowego
+%   xdif(i) = abs(xvec(i+1)-xvec(i));
+% xsolution - obliczone miejsce zerowe
+% ysolution - wartość funkcji impedance_difference wyznaczona dla f=xsolution
+% iterations - liczba iteracji wykonana w celu wyznaczenia xsolution
+
+a = 1; % lewa granica przedziału poszukiwań miejsca zerowego
+b = 10; % prawa granica przedziału poszukiwań miejsca zerowego
+ytolerance = 1e-12; % tolerancja wartości funkcji w przybliżonym miejscu zerowym.
+% Warunek abs(f1(xsolution))<ytolerance określa jak blisko zera ma znaleźć
+% się wartość funkcji w obliczonym miejscu zerowym funkcji f1(), aby obliczenia
+% zostały zakończone.
+max_iterations = 1000; % maksymalna liczba iteracji wykonana przez alg. bisekcji
+
+fa = impedance_difference(a);
+fb = impedance_difference(b);
+
+xvec = [];
+xdif = [];
+xsolution = Inf;
+ysolution = Inf;
+iterations = max_iterations;
+
+for ii=1:max_iterations
+    c = (a+b)/2;
+    xvec(ii,1) = c;
+    fc = impedance_difference(c);
+
+    if(abs(fc)<ytolerance)
+        xsolution = c;
+        ysolution = fc;
+        iterations = ii;
+        break
+    else
+        if(fa*fc<0)
+            b=c;
+        else
+            a=c;
+        end
+    end
+
+end
+%disp(xdif);
+
+
+end
+
+function impedance_delta = impedance_difference (f)
+    % Stałe
+    R = 525;            % rezystancja (Ohm)
+    L = 3;              % indukcyjność (H)
+    C = 7e-5;           % pojemność (F)
+    Z_ref = 75;         % wartość odniesienia
+
+    % Sprawdzenie poprawności częstotliwości
+    if f <= 0
+        error('Częstotliwość musi być większa od zera.');
+    end
+
+    % Obliczanie modułu impedancji |Z(f)|
+    omega = 2 * pi * f;
+    numerator = 1;
+    denominator = sqrt(1/R^2 + (omega * C - 1 / (omega * L))^2);
+    Zf = numerator / denominator;
+
+    % Różnica względem wartości odniesienia
+    impedance_delta = abs(Zf) - Z_ref;
+
+end
